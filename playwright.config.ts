@@ -13,6 +13,16 @@ export default defineConfig<TestOptions>({
 
   retries: 1,
   reporter: [
+    // Use "dot" reporter on CI, "list" otherwise (Playwright default).
+    process.env.CI ? ["dot"] : ["list"],
+    // Add Argos reporter.
+    [
+      "@argos-ci/playwright/reporter",
+      {
+        // Upload to Argos on CI only.
+        uploadToArgos: !!process.env.CI,
+      },
+    ],
     ['json', {outputFile: 'test-results/jsonReport.json'}],
     ['junit', {outputFile: 'test-results/junitReport.xml'}],
     // ['allure-playwright'],
@@ -25,7 +35,10 @@ export default defineConfig<TestOptions>({
           : process.env.STAGING == '1' ? 'http://localhost:4202/'
           : 'http://localhost:4200/',
 
+    // Collect trace when retrying the failed test.
     trace: 'on-first-retry',
+    // Capture screenshot after each test failure.
+    screenshot: "only-on-failure",
     actionTimeout: 20000,
     navigationTimeout: 25000,
     video: {
